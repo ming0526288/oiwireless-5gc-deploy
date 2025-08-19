@@ -1,0 +1,120 @@
+services:
+    oiwireless-amf:
+       container_name: "oiwireless-amf"
+       image: oiwireless-amf:v1.5.2
+       privileged: true
+       stdin_open: true
+       tty: true
+       logging:
+         driver: "json-file"
+         options:
+           max-size: "1m"
+       networks:
+           oiwireless-net:
+               ipv4_address: 172.11.200.14
+       ports:
+         - "38412:38412/sctp"
+         - "8004:8004/tcp"
+       volumes:
+         - /etc/timezone:/etc/timezone
+         - /etc/localtime:/etc/localtime
+         - ./etc/amf.conf:/oiwireless-amf/amf.conf
+       command :  /oiwireless-amf/amf -c /oiwireless-amf/amf.conf -o
+
+    oiwireless-smf:
+       container_name: "oiwireless-smf"
+       image: oiwireless-smf:v1.5.2
+       privileged: true
+       stdin_open: true
+       tty: true
+       logging:
+         driver: "json-file"
+         options:
+           max-size: "1m"
+       networks:
+           oiwireless-net:
+               ipv4_address: 172.11.200.15
+       ports:
+         - "8005:8005"
+       volumes:
+         - /etc/timezone:/etc/timezone
+         - /etc/localtime:/etc/localtime
+         - ./etc/smf.conf:/oiwireless-smf/smf.conf
+       command: "/oiwireless-smf/smf -c /oiwireless-smf/smf.conf -o"
+
+    oiwireless-upf:
+       container_name: "oiwireless-upf"
+       image: oiwireless-upf:v1.5.2
+       privileged: true
+       stdin_open: true
+       tty: true
+       logging:
+         driver: "json-file"
+         options:
+           max-size: "1m"
+       depends_on:
+         - oiwireless-smf
+       networks:
+           oiwireless-net:
+               ipv4_address: 172.11.200.25
+       ports:
+#         - "2152:2152/udp"
+         - "5000:5000"
+       volumes:
+         - /etc/timezone:/etc/timezone
+         - /etc/localtime:/etc/localtime
+         - ./etc/upf.conf:/oiwireless-upf/upf.conf
+       command: "/oiwireless-upf/upf -c /oiwireless-upf/upf.conf -o"
+
+    mysql:
+       image: mysql:5.7.2
+       container_name: mysql
+       restart: always
+       logging:
+         driver: "json-file"
+         options:
+           max-size: "1m"
+       networks:
+           oiwireless-net:
+               ipv4_address: 172.11.200.10
+       ports:
+         - "3309:3306"
+         - "33090:33060"
+       volumes:
+         - /etc/timezone:/etc/timezone
+         - /etc/localtime:/etc/localtime
+         
+       environment:
+         MYSQL_ROOT_PASSWORD: root
+
+    phpmyadmin:
+       image: phpmyadmin:latest
+       container_name: phpmyadmin
+       restart: always
+       logging:
+         driver: "json-file"
+         options:
+           max-size: "1m"
+       depends_on:
+         - mysql
+       networks:
+           oiwireless-net:
+               ipv4_address: 172.11.200.9
+       ports:
+         - "8080:80"
+       volumes:
+         - /etc/timezone:/etc/timezone
+         - /etc/localtime:/etc/localtime
+       environment:
+         PMA_HOST: 172.11.200.10
+         PMA_PORT: 3306
+
+networks:
+    oiwireless-net:
+       driver: bridge
+       name: oiwireless-net
+       ipam:
+           config:
+               - subnet: 172.11.200.0/24
+       driver_opts:
+           com.docker.network.bridge.name: "oiwireless-net"
