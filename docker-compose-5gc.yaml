@@ -9,6 +9,8 @@ services:
          driver: "json-file"
          options:
            max-size: "1m"
+       depends_on:
+         - mysql
        networks:
            oiwireless-net:
                ipv4_address: 172.11.200.14
@@ -31,6 +33,8 @@ services:
          driver: "json-file"
          options:
            max-size: "1m"
+       depends_on:
+         - oiwireless-amf
        networks:
            oiwireless-net:
                ipv4_address: 172.11.200.15

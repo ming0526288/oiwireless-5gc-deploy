@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 COMPOSE_FILE="./docker-compose-5gc.yaml"
 # 核心网网元容器名称
@@ -8,8 +8,7 @@ WAIT_SECONDS=3
 
 # 检查容器是否正常（运行中且不包含 AddressSanitizer 错误）
 check_nf_healthy() {
-    local container=$1
-    local status
+    container=$1
 
     # 检查容器是否在运行
     status=$(docker inspect --format='{{.State.Status}}' "$container" 2>/dev/null)
@@ -19,7 +18,6 @@ check_nf_healthy() {
     fi
 
     # 检查最近日志是否有 AddressSanitizer 错误
-    local asan_count
     asan_count=$(docker logs --tail 50 "$container" 2>&1 | grep -c "AddressSanitizer" || true)
     if [ "$asan_count" -gt 0 ]; then
         echo "address_sanitizer"
@@ -31,15 +29,18 @@ check_nf_healthy() {
 
 # 获取不正常的网元列表
 get_unhealthy_nfs() {
-    local unhealthy=()
+    unhealthy=""
     for nf in "${NETWORK_FUNCTIONS[@]}"; do
-        local result
         result=$(check_nf_healthy "$nf")
         if [ "$result" != "healthy" ]; then
-            unhealthy+=("$nf")
+            if [ -n "$unhealthy" ]; then
+                unhealthy="$unhealthy $nf"
+            else
+                unhealthy="$nf"
+            fi
         fi
     done
-    echo "${unhealthy[@]}"
+    echo "$unhealthy"
 }
 
 echo "正在启动核心网..."
@@ -56,15 +57,13 @@ for ((retry = 1; retry <= MAX_RETRIES; retry++)); do
         exit 0
     fi
 
-    echo "核心网正在启动中（第 ${retry}/${MAX_RETRIES} 次检查）"
+    echo "核心网正在启动中..."
     for nf in "${unhealthy_nfs[@]}"; do
-        local result
-        result=$(check_nf_healthy "$nf")
-        echo "  - ${nf}: ${result}，正在重启..."
-        docker restart "$nf" >/dev/null 2>&1
+        docker compose -f "$COMPOSE_FILE" down -t 0
+        docker compose -f "$COMPOSE_FILE" up -d
     done
 
-    # 等待重启后的网元初始化
+    # 等待网元初始化
     sleep "$WAIT_SECONDS"
 done
 
