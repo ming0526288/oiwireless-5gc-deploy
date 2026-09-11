@@ -44,7 +44,7 @@ get_unhealthy_nfs() {
 }
 
 echo "正在启动核心网..."
-docker compose -f "$COMPOSE_FILE" up -d
+docker-compose -f "$COMPOSE_FILE" up -d
 
 # 等待容器初始化
 sleep "$WAIT_SECONDS"
@@ -59,8 +59,8 @@ for ((retry = 1; retry <= MAX_RETRIES; retry++)); do
 
     echo "核心网正在启动中..."
     for nf in "${unhealthy_nfs[@]}"; do
-        docker compose -f "$COMPOSE_FILE" down -t 0
-        docker compose -f "$COMPOSE_FILE" up -d
+        docker-compose -f "$COMPOSE_FILE" down -t 0
+        docker-compose -f "$COMPOSE_FILE" up -d
     done
 
     # 等待网元初始化
