@@ -1,0 +1,5 @@
+6ea5efcb6b8bbed1ff250b2188558ec5c3b2d792dd125af04183f5163b8c4b4a  docker-images/mysql-5.7.2.tar.gz
+b23beb3a7d3cee433b13816aa7dfb8ba69a16edb5960897d61533051e0b938fa  docker-images/oiwireless-amf-v1.5.2.tar.gz
+658c303fe77c0718b5603674d1ba744d36eeadcabd9e2c55c5808305791baa42  docker-images/oiwireless-smf-v1.5.2.tar.gz
+cdd3296f7c352fa572006868981b7459fb72846f4034d8e4648d523b1fda1c0b  docker-images/oiwireless-upf-v1.5.2.tar.gz
+e5e3026ba47c0dad41ae20d53700360478aff521850b283d84956548fe3bfcfd  docker-images/phpmyadmin-latest.tar.gz
